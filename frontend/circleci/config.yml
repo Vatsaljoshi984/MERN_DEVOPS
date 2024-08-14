@@ -1,1 +1,57 @@
+version: 2.1
+
+executors:
+  node-executor:
+    docker:
+      - image: circleci/node:latest
+
+jobs:
+  build_application:
+    executor: node-executor
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm install
+      - run:
+          name: Run Build
+          command: npm run build
+      - persist_to_workspace:
+          root: .
+          paths:
+            - /var/www/html/MERN_Devops/frontend/dist
+
+  deploy_frontend:
+    docker:
+      - image: circleci/node:latest
+    resource_class: medium
+    steps:
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Copy Build to EC2 Server
+          command: |
+            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/var/www/html/MERN_Devops/frontend/dist/* ubuntu@13.126.190.107:/var/www/html/frontend
+      - run:
+          name: Reload Apache
+          command: |
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@13.126.190.107 '
+              sudo systemctl reload apache2 &&
+              sudo chown -R ubuntu:ubuntu /var/www/html/frontend'
+
+workflows:
+  version: 2
+  build_and_deploy:
+    jobs:
+      - build_application
+      - deploy_frontend:
+          requires:
+            - build_application
+          filters:
+            branches:
+              only:
+                - main
 

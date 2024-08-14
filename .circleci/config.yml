@@ -16,6 +16,9 @@ jobs:
       - run:
           name: Run Build
           command: npm run build
+      - run:
+          name: Verify Build Output
+          command: ls -al dist
       - persist_to_workspace:
           root: .
           paths:
@@ -34,7 +37,7 @@ jobs:
       - run:
           name: Copy Build to EC2 Server
           command: |
-            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r dist ubuntu@3.108.227.85:/var/www/html/MERN_Devops/frontend/dist
+            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/dist ubuntu@3.108.227.85:/var/www/html/MERN_Devops/frontend/dist
       - run:
           name: Reload Apache
           command: |

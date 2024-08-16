@@ -1,34 +1,30 @@
 version: 2.1
-
+ 
 executors:
   node-executor:
     docker:
       - image: circleci/node:latest
 
 jobs:
-  install_dependencies:
+  build_application:
     executor: node-executor
     steps:
       - checkout
       - run:
           name: Install Dependencies
           command: npm install
+      - run:
+          name: Run Build
+          command: npm run build
+      - run:
+          name: Verify Build Output
+          command: ls -al dist
       - persist_to_workspace:
           root: .
           paths:
-            - .
+            - dist
 
-  test:
-    executor: node-executor
-    steps:
-      - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Run Tests
-          command: npm test
-
-  deploy_backend:
+  deploy_frontend:
     docker:
       - image: circleci/node:latest
     resource_class: medium
@@ -39,28 +35,24 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run:
-          name: Copy Files to EC2 Server
+          name: Copy Build to EC2 Server
           command: |
-            scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa /tmp/workspace/* ubuntu@52.66.209.226:/var/www/html/backend
+            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/dist ubuntu@52.66.209.226:/var/www/html/MERN_Devops/frontend/dist
       - run:
-          name: Restart Backend with PM2
+          name: Reload Apache
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@52.66.209.226 '
-              cd /var/www/html/backend &&
-              pm2 startOrReload ecosystem.config.js --env production &&
-              sudo chown -R ubuntu:ubuntu /var/www/html/backend'
+              sudo systemctl reload apache2 &&
+              sudo chown -R ubuntu:ubuntu /var/www/html/MERN_Devops'
 
 workflows:
   version: 2
   build_and_deploy:
     jobs:
-      - install_dependencies
-      - test:
+      - build_application
+      - deploy_frontend:
           requires:
-            - install_dependencies
-      - deploy_backend:
-          requires:
-            - test
+            - build_application
           filters:
             branches:
               only:

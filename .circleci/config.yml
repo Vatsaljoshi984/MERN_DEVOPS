@@ -3,27 +3,65 @@ version: 2.1
 executors:
   node-executor:
     docker:
-      - image: circleci/node:14
+      - image: circleci/node:latest
 
 jobs:
-  deploy:
+  install_dependencies:
     executor: node-executor
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: npm install
+      - persist_to_workspace:
+          root: .
+          paths:
+            - .
+
+  test:
+    executor: node-executor
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Run Tests
+          command: npm test
+
+  deploy_backend:
+    docker:
+      - image: circleci/node:latest
+    resource_class: medium
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
+            - "SHA256:dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
+      - attach_workspace:
+          at: /tmp/workspace
       - run:
-          name: Pull latest code from backend branch
+          name: Copy Files to EC2 Server
           command: |
-            ssh ubuntu@52.66.209.226 << 'EOF'
-            cd /var/www/html/MERN_Devops/backend
-            git pull origin backend
-            npm install
-            pm2 restart all
-            EOF
+            scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa /tmp/workspace/* ubuntu@52.66.209.226:/var/www/html/backend
+      - run:
+          name: Restart Backend with PM2
+          command: |
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@52.66.209.226 '
+              cd /var/www/html/backend &&
+              pm2 startOrReload ecosystem.config.js --env production &&
+              sudo chown -R ubuntu:ubuntu /var/www/html/backend'
 
 workflows:
   version: 2
-  deploy-workflow:
+  build_and_deploy:
     jobs:
-      - deploy
+      - install_dependencies
+      - test:
+          requires:
+            - install_dependencies
+      - deploy_backend:
+          requires:
+            - test
+          filters:
+            branches:
+              only:
+                - frontend

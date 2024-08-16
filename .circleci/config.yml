@@ -37,6 +37,7 @@ jobs:
           command: |
             ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@13.201.127.64 '
               cd /var/www/html/MERN_Devops/backend &&
+              npm install --production &&
               pm2 startOrReload ecosystem.config.js --env production &&
               sudo chown -R ubuntu:ubuntu /var/www/html/MERN_Devops/backend'
 

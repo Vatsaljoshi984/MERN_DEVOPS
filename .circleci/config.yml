@@ -3,53 +3,27 @@ version: 2.1
 executors:
   node-executor:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:14
 
 jobs:
-  install_dependencies:
+  deploy:
     executor: node-executor
-    steps:
-      - checkout
-      - run:
-          name: Install Dependencies
-          command: npm install
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-
-  deploy_backend:
-    docker:
-      - image: circleci/node:latest
-    resource_class: medium
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
-      - attach_workspace:
-          at: /tmp/workspace
+            - "dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
       - run:
-          name: Copy Files to EC2 Server
+          name: Pull latest code
           command: |
-            scp -r -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa /tmp/workspace/* ubuntu@13.201.127.64:/var/www/html/MERN_Devops/backend
-      - run:
-          name: Restart Backend with PM2
-          command: |
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@13.201.127.64 '
-              cd /var/www/html/MERN_Devops/backend &&
-              npm install --production &&
-              pm2 startOrReload ecosystem.config.js --env production &&
-              sudo chown -R ubuntu:ubuntu /var/www/html/MERN_Devops/backend'
+            ssh ubuntu@52.66.209.226
+            cd /var/www/html/MERN_Devops/backend
+            git pull origin main
+            npm install
+            pm2 restart all
+            EOF
 
 workflows:
   version: 2
-  build_and_deploy:
+  deploy-workflow:
     jobs:
-      - install_dependencies
-      - deploy_backend:
-          requires:
-            - install_dependencies
-          filters:
-            branches:
-              only:
-                - backend
+      - deploy

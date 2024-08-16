@@ -1,59 +1,29 @@
 version: 2.1
- 
+
 executors:
   node-executor:
     docker:
-      - image: circleci/node:latest
+      - image: circleci/node:14
 
 jobs:
-  build_application:
+  deploy:
     executor: node-executor
-    steps:
-      - checkout
-      - run:
-          name: Install Dependencies
-          command: npm install
-      - run:
-          name: Run Build
-          command: npm run build
-      - run:
-          name: Verify Build Output
-          command: ls -al dist
-      - persist_to_workspace:
-          root: .
-          paths:
-            - dist
-
-  deploy_frontend:
-    docker:
-      - image: circleci/node:latest
-    resource_class: medium
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "SHA256:dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
-      - attach_workspace:
-          at: /tmp/workspace
+            - "dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
       - run:
-          name: Copy Build to EC2 Server
+          name: Pull latest code from backend branch
           command: |
-            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/dist ubuntu@3.108.227.85:/var/www/html/MERN_Devops/frontend/dist
-      - run:
-          name: Reload Apache
-          command: |
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@3.108.227.85 '
-              sudo systemctl reload apache2 &&
-              sudo chown -R ubuntu:ubuntu /var/www/html/MERN_Devops'
+            ssh ubuntu@52.66.209.226 << 'EOF'
+            cd /var/www/html/MERN_Devops/backend
+            git pull origin backend
+            npm install
+            pm2 restart all
+            EOF
 
 workflows:
   version: 2
-  build_and_deploy:
+  deploy-workflow:
     jobs:
-      - build_application
-      - deploy_frontend:
-          requires:
-            - build_application
-          filters:
-            branches:
-              only:
-                - frontend
+      - deploy

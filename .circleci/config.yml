@@ -4,7 +4,7 @@ executors:
   node-executor:
     docker:
       - image: circleci/node:latest
-
+ 
 jobs:
   build_application:
     executor: node-executor

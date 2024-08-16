@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Pull latest code from backend branch
           command: |
-            ssh ubuntu@52.66.209.226 "cd /var/www/html/MERN_Devops/backend && git pull origin backend && npm install && pm2 restart all"
+            ssh ubuntu@52.66.209.226 "cd /var/www/html/MERN_Devops/backend && git pull origin backend && pm2 restart 0"
 
 workflows:
   version: 2

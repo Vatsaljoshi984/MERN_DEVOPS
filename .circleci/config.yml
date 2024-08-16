@@ -37,11 +37,11 @@ jobs:
       - run:
           name: Copy Build to EC2 Server
           command: |
-            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/dist ubuntu@52.66.209.226:/var/www/html/MERN_Devops/frontend/
+            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/dist ubuntu@15.206.123.89:/var/www/html/MERN_Devops/frontend/
       - run:
           name: Reload Apache
           command: |
-            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@52.66.209.226 '
+            ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa ubuntu@15.206.123.89  '
               sudo systemctl reload apache2 &&
               sudo chown -R ubuntu:ubuntu /var/www/html/MERN_Devops'
 

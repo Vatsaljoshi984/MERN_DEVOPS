@@ -1,10 +1,10 @@
 version: 2.1
-  
+
 executors:
   node-executor:
     docker:
       - image: circleci/node:latest
- 
+
 jobs:
   build_application:
     executor: node-executor
@@ -37,7 +37,7 @@ jobs:
       - run:
           name: Copy Build to EC2 Server
           command: |
-            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/dist ubuntu@52.66.209.226:/var/www/html/MERN_Devops/frontend/dist
+            scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_rsa -r /tmp/workspace/dist ubuntu@52.66.209.226:/var/www/html/MERN_Devops/frontend/
       - run:
           name: Reload Apache
           command: |

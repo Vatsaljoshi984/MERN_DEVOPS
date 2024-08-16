@@ -15,7 +15,7 @@ jobs:
       - run:
           name: Pull latest code from backend branch
           command: |
-            ssh -o StrictHostKeyChecking=no ubuntu@52.66.209.226 "
+            ssh -o StrictHostKeyChecking=no ubuntu@15.206.123.89"
               cd /var/www/html/MERN_Devops/backend &&
               git fetch origin backend &&
               git checkout backend &&

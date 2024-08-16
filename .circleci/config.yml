@@ -11,11 +11,11 @@ jobs:
     steps:
       - add_ssh_keys:
           fingerprints:
-            - "	SHA256:dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
+            - "dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
       - run:
           name: Pull latest code from backend branch
           command: |
-            ssh ubuntu@52.66.209.226 "cd /var/www/html/MERN_Devops/backend && git pull origin backend && pm2 restart 0"
+            ssh -o StrictHostKeyChecking=no ubuntu@52.66.209.226 "cd /var/www/html/MERN_Devops/backend && git pull origin backend && pm2 restart 0"
 
 workflows:
   version: 2

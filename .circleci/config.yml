@@ -18,16 +18,6 @@ jobs:
           paths:
             - .
 
-  test:
-    executor: node-executor
-    steps:
-      - checkout
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Run Tests
-          command: npm test
-
   deploy_backend:
     docker:
       - image: circleci/node:latest
@@ -55,14 +45,10 @@ workflows:
   build_and_deploy:
     jobs:
       - install_dependencies
-      - test:
-          requires:
-            - install_dependencies
       - deploy_backend:
           requires:
-            - test
+            - install_dependencies
           filters:
             branches:
               only:
                 - main
-

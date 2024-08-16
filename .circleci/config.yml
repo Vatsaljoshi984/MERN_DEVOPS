@@ -1,5 +1,5 @@
 version: 2.1
- 
+
 executors:
   node-executor:
     docker:
@@ -12,17 +12,18 @@ jobs:
       - add_ssh_keys:
           fingerprints:
             - "dTbd7DeoUsp6E6cpOm1sufbJLEs3Hnglp4PTX+/2vBc"
-   - run:
-    name: Pull latest code from backend branch
-    command: |
-      ssh -o StrictHostKeyChecking=no ubuntu@52.66.209.226 "
-        cd /var/www/html/MERN_Devops/backend &&
-        git fetch origin backend &&
-        git reset --hard origin/backend &&
-        git pull origin backend &&
-        npm install &&
-        pm2 restart 0
-      "
+      - run:
+          name: Pull latest code from backend branch
+          command: |
+            ssh -o StrictHostKeyChecking=no ubuntu@52.66.209.226 "
+              cd /var/www/html/MERN_Devops/backend &&
+              git fetch origin backend &&
+              git checkout backend &&
+              git merge origin/backend --no-edit || git merge --abort &&
+              git pull origin backend &&
+              npm install &&
+              pm2 restart 0
+            "
 
 workflows:
   version: 2
